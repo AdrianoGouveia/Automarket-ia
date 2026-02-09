@@ -92,3 +92,27 @@
 - [ ] Documentação da API (OpenAPI/Swagger)
 - [ ] Configurar CI/CD
 - [ ] Deploy em produção
+
+
+## Fase 4: Admin & Moderação (Em Desenvolvimento)
+
+### Painel Administrativo
+- [x] Criar página de dashboard admin com estatísticas
+- [x] Criar página de moderação de anúncios
+- [x] Criar página de gerenciamento de usuários
+- [x] Criar página de gerenciamento de lojas
+- [ ] Implementar gráficos e visualizações de dados
+
+### Sistema de Moderação
+- [x] Implementar aprovação/rejeição de anúncios
+- [x] Implementar sistema de banimento de usuários
+- [x] Implementar sistema de verificação de lojas
+- [x] Implementar logs de moderação
+- [ ] Implementar notificações de moderação
+
+### Supabase Storage
+- [x] Configurar cliente Supabase
+- [x] Criar helper para upload de imagens no Supabase Storage
+- [x] Migrar processamento de imagens para Supabase
+- [x] Atualizar endpoints de upload para usar Supabase
+- [x] Testar upload e download de imagens

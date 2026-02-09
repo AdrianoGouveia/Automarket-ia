@@ -551,3 +551,102 @@ export async function getAllCarsForModeration(limit = 50, offset = 0) {
     .offset(offset)
     .orderBy(desc(cars.createdAt));
 }
+
+// ============= ADMIN & MODERATION OPERATIONS =============
+
+export async function getAllUsersForModeration(limit = 50, offset = 0, role?: 'user' | 'store_owner' | 'admin') {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0 };
+  
+  let query = db.select().from(users);
+  
+  if (role) {
+    query = query.where(eq(users.role, role)) as any;
+  }
+  
+  const data = await query.limit(limit).offset(offset).orderBy(desc(users.createdAt));
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(users);
+  
+  return {
+    data,
+    total: countResult?.count || 0,
+  };
+}
+
+export async function updateUserRole(userId: number, role: 'user' | 'store_owner' | 'admin') {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+}
+
+export async function banUserCars(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db.update(cars).set({ status: 'BANNED' }).where(eq(cars.sellerId, userId));
+}
+
+export async function getAllStoresForModeration(limit = 50, offset = 0) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0 };
+  
+  const data = await db.select()
+    .from(stores)
+    .limit(limit)
+    .offset(offset)
+    .orderBy(desc(stores.createdAt));
+  
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(stores);
+  
+  return {
+    data,
+    total: countResult?.count || 0,
+  };
+}
+
+export async function createModerationLog(data: {
+  adminId: number;
+  targetType: string;
+  targetId: number;
+  action: string;
+  reason?: string;
+}) {
+  const db = await getDb();
+  if (!db) return;
+  
+  // For now, just log to console
+  // In production, you would store this in a moderation_logs table
+  console.log('[Moderation Log]', {
+    timestamp: new Date().toISOString(),
+    ...data,
+  });
+}
+
+export async function getModerationLogs(limit = 100, offset = 0) {
+  // For now, return empty array
+  // In production, you would query the moderation_logs table
+  return {
+    data: [],
+    total: 0,
+  };
+}
+
+export async function getAllCarsForModerationWithStatus(limit = 50, offset = 0, status?: 'ACTIVE' | 'DRAFT' | 'SOLD' | 'BANNED') {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0 };
+  
+  let query = db.select().from(cars);
+  
+  if (status) {
+    query = query.where(eq(cars.status, status)) as any;
+  }
+  
+  const data = await query.limit(limit).offset(offset).orderBy(desc(cars.createdAt));
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(cars);
+  
+  return {
+    data,
+    total: countResult?.count || 0,
+  };
+}

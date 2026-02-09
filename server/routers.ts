@@ -5,8 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
-import { storagePut } from "./storage";
-import sharp from "sharp";
+import { uploadCarPhoto, deleteCarPhoto } from "./supabase-storage";
 import { nanoid } from "nanoid";
 
 // ============= VALIDATION SCHEMAS =============
@@ -90,38 +89,13 @@ const createTransactionSchema = z.object({
 
 // ============= HELPER FUNCTIONS =============
 
-async function processAndUploadImage(imageData: string, carId: number, orderIndex: number) {
+async function processAndUploadImage(imageData: string, carId: number, userId: number, orderIndex: number) {
   const buffer = Buffer.from(imageData.split(',')[1] || imageData, 'base64');
   
-  // Generate thumbnail (400x300)
-  const thumbBuffer = await sharp(buffer)
-    .resize(400, 300, { fit: 'cover' })
-    .webp({ quality: 80 })
-    .toBuffer();
+  // Upload to Supabase Storage with automatic processing
+  const { urls, paths } = await uploadCarPhoto(carId, buffer, userId);
   
-  // Generate medium (800x600)
-  const mediumBuffer = await sharp(buffer)
-    .resize(800, 600, { fit: 'cover' })
-    .webp({ quality: 85 })
-    .toBuffer();
-  
-  // Generate large (1600x1200)
-  const largeBuffer = await sharp(buffer)
-    .resize(1600, 1200, { fit: 'cover' })
-    .webp({ quality: 90 })
-    .toBuffer();
-  
-  const fileId = nanoid(10);
-  
-  const thumbResult = await storagePut(`cars/${carId}/thumb-${fileId}.webp`, thumbBuffer, 'image/webp');
-  const mediumResult = await storagePut(`cars/${carId}/medium-${fileId}.webp`, mediumBuffer, 'image/webp');
-  const largeResult = await storagePut(`cars/${carId}/large-${fileId}.webp`, largeBuffer, 'image/webp');
-  
-  return {
-    thumb: thumbResult.url,
-    medium: mediumResult.url,
-    large: largeResult.url,
-  };
+  return urls;
 }
 
 // ============= MIDDLEWARE =============
@@ -379,7 +353,7 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Máximo de 15 fotos por anúncio' });
         }
         
-        const urls = await processAndUploadImage(input.imageData, input.carId, input.orderIndex);
+        const urls = await processAndUploadImage(input.imageData, input.carId, ctx.user.id, input.orderIndex);
         
         const photo = await db.createCarPhoto({
           carId: input.carId,
@@ -516,24 +490,133 @@ export const appRouter = router({
   }),
 
   admin: router({
+    // Dashboard Statistics
     dashboard: adminProcedure.query(async () => {
       return await db.getAdminDashboardStats();
     }),
     
+    // Car Moderation
     moderateCar: adminProcedure
       .input(z.object({
         carId: z.number().int(),
-        status: z.enum(['ACTIVE', 'BANNED']),
+        status: z.enum(['ACTIVE', 'BANNED', 'DRAFT']),
+        reason: z.string().optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         await db.updateCar(input.carId, { status: input.status });
+        
+        // Log moderation action
+        await db.createModerationLog({
+          adminId: ctx.user.id,
+          targetType: 'CAR',
+          targetId: input.carId,
+          action: input.status,
+          reason: input.reason,
+        });
+        
         return { success: true };
       }),
     
     getAllCars: adminProcedure
-      .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+      .input(z.object({ 
+        limit: z.number().default(50), 
+        offset: z.number().default(0),
+        status: z.enum(['ACTIVE', 'DRAFT', 'SOLD', 'BANNED']).optional(),
+      }))
       .query(async ({ input }) => {
+        if (input.status) {
+          return await db.getAllCarsForModerationWithStatus(input.limit, input.offset, input.status);
+        }
         return await db.getAllCarsForModeration(input.limit, input.offset);
+      }),
+    
+    // User Management
+    getAllUsers: adminProcedure
+      .input(z.object({ 
+        limit: z.number().default(50), 
+        offset: z.number().default(0),
+        role: z.enum(['user', 'store_owner', 'admin']).optional(),
+      }))
+      .query(async ({ input }) => {
+        return await db.getAllUsersForModeration(input.limit, input.offset, input.role);
+      }),
+    
+    updateUserRole: adminProcedure
+      .input(z.object({
+        userId: z.number().int(),
+        role: z.enum(['user', 'store_owner', 'admin']),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.updateUserRole(input.userId, input.role);
+        
+        await db.createModerationLog({
+          adminId: ctx.user.id,
+          targetType: 'USER',
+          targetId: input.userId,
+          action: `ROLE_CHANGE_${input.role.toUpperCase()}`,
+          reason: `Role alterado para ${input.role}`,
+        });
+        
+        return { success: true };
+      }),
+    
+    banUser: adminProcedure
+      .input(z.object({
+        userId: z.number().int(),
+        reason: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Ban user by setting all their cars to BANNED
+        await db.banUserCars(input.userId);
+        
+        await db.createModerationLog({
+          adminId: ctx.user.id,
+          targetType: 'USER',
+          targetId: input.userId,
+          action: 'BAN',
+          reason: input.reason,
+        });
+        
+        return { success: true };
+      }),
+    
+    // Store Management
+    getAllStores: adminProcedure
+      .input(z.object({ 
+        limit: z.number().default(50), 
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        return await db.getAllStoresForModeration(input.limit, input.offset);
+      }),
+    
+    verifyStore: adminProcedure
+      .input(z.object({
+        storeId: z.number().int(),
+        isVerified: z.boolean(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        await db.updateStore(input.storeId, { isVerified: input.isVerified });
+        
+        await db.createModerationLog({
+          adminId: ctx.user.id,
+          targetType: 'STORE',
+          targetId: input.storeId,
+          action: input.isVerified ? 'VERIFY' : 'UNVERIFY',
+          reason: input.isVerified ? 'Loja verificada' : 'Verificação removida',
+        });
+        
+        return { success: true };
+      }),
+    
+    // Moderation Logs
+    getModerationLogs: adminProcedure
+      .input(z.object({ 
+        limit: z.number().default(100), 
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        return await db.getModerationLogs(input.limit, input.offset);
       }),
   }),
 });
