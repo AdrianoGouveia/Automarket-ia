@@ -206,11 +206,9 @@ export default function Home() {
                   Confira os anúncios mais recentes
                 </p>
               </div>
-              <Button variant="outline" asChild>
-                <Link href="/cars">
-                  <a>Ver Todos</a>
-                </Link>
-              </Button>
+              <Link href="/cars">
+                <Button variant="outline">Ver Todos</Button>
+              </Link>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -261,23 +259,17 @@ export default function Home() {
           </p>
           <div className="flex gap-4 justify-center">
             {isAuthenticated ? (
-              <Button size="lg" variant="secondary" asChild>
-                <Link href="/cars/new">
-                  <a>Criar Anúncio</a>
-                </Link>
-              </Button>
+              <Link href="/cars/new">
+                <Button size="lg" variant="secondary">Criar Anúncio</Button>
+              </Link>
             ) : (
               <>
-                            <Button size="lg" asChild>
-                  <Link href="/signup">
-                    <a>Começar Agora</a>
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10" asChild>
-                  <Link href="/cars">
-                    <a>Explorar Veículos</a>
-                  </Link>
-                </Button>
+                <Link href="/signup">
+                  <Button size="lg">Começar Agora</Button>
+                </Link>
+                <Link href="/cars">
+                  <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">Explorar Veículos</Button>
+                </Link>
               </>
             )}
           </div>

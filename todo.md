@@ -216,4 +216,4 @@
 ## Fase 10: Correções de Bugs
 
 ### HTML/React
-- [x] Corrigir erro de nested anchor tags na Home
+- [x] Corrigir TODOS os erros de nested anchor tags
