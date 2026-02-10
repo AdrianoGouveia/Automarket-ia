@@ -219,3 +219,16 @@
 - [x] Corrigir TODOS os erros de nested anchor tags
 
 - [x] Corrigir erro 503 Service Unavailable na autenticação Supabase
+
+- [x] Atualizar drop_all_tables.sql para incluir schema completo existente no Supabase
+
+- [x] Corrigir scripts SQL para sintaxe PostgreSQL (remover backticks, ajustar tipos)
+
+- [x] Corrigir erro JSONB no trigger search_vector (add_search_and_rls.sql)
+
+- [x] Corrigir nomes de colunas (snake_case → camelCase) em add_search_and_rls.sql
+
+- [x] Corrigir ordem de execução SQL (mover funções helper antes das políticas RLS)
+
+- [ ] Criar checkpoint do projeto
+- [ ] Fazer commit e push para GitHub (https://github.com/AdrianoGouveia/Automarket)
