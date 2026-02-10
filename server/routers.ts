@@ -579,6 +579,100 @@ export const appRouter = router({
     }),
   }),
 
+  // ============= MESSAGES ROUTER =============
+  messagesRouter: router({
+    getConversations: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserConversations(ctx.user.id);
+    }),
+
+    getMessages: protectedProcedure
+      .input(z.object({
+        carId: z.number().int(),
+        otherUserId: z.number().int(),
+      }))
+      .query(async ({ ctx, input }) => {
+        return await db.getConversationMessages(ctx.user.id, input.otherUserId, input.carId);
+      }),
+
+    send: protectedProcedure
+      .input(z.object({
+        carId: z.number().int(),
+        receiverId: z.number().int(),
+        content: z.string().min(1).max(1000),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.createMessage({
+          senderId: ctx.user.id,
+          receiverId: input.receiverId,
+          carId: input.carId,
+          content: input.content,
+        });
+      }),
+
+    markAsRead: protectedProcedure
+      .input(z.object({
+        messageIds: z.array(z.number().int()),
+      }))
+      .mutation(async ({ input }) => {
+        return await db.markMessagesAsRead(input.messageIds);
+      }),
+  }),
+
+  // ============= REVIEWS ROUTER =============
+  reviewsRouter: router({
+    getBySeller: publicProcedure
+      .input(z.object({
+        sellerId: z.number().int().optional(),
+        storeId: z.number().int().optional(),
+        limit: z.number().default(10),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        return await db.getReviews(input);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        carId: z.number().int(),
+        sellerId: z.number().int(),
+        rating: z.number().int().min(1).max(5),
+        comment: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.createReview({
+          ...input,
+          reviewerId: ctx.user.id,
+        });
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int(),
+        rating: z.number().int().min(1).max(5),
+        comment: z.string().max(500).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const review = await db.getReviewById(input.id);
+        if (!review || review.reviewerId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Você não pode editar esta avaliação' });
+        }
+        return await db.updateReview(input.id, {
+          rating: input.rating,
+          comment: input.comment,
+        });
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const review = await db.getReviewById(input.id);
+        if (!review || review.reviewerId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Você não pode excluir esta avaliação' });
+        }
+        return await db.deleteReview(input.id);
+      }),
+  }),
+
   admin: router({
     // Dashboard Statistics
     dashboard: adminProcedure.query(async () => {

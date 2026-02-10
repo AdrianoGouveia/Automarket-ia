@@ -1,4 +1,5 @@
 import { useRoute, Link } from "wouter";
+import Reviews from "@/components/Reviews";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -273,6 +274,11 @@ export default function CarDetail() {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <Reviews sellerId={car.sellerId} carId={car.id} />
         </div>
       </div>
     </div>

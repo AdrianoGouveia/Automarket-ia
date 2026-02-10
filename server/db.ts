@@ -650,3 +650,76 @@ export async function getAllCarsForModerationWithStatus(limit = 50, offset = 0, 
     total: countResult?.count || 0,
   };
 }
+
+
+export async function getConversationMessages(userId: number, otherUserId: number, carId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return await db
+    .select()
+    .from(messages)
+    .where(
+      and(
+        eq(messages.carId, carId),
+        or(
+          and(eq(messages.senderId, userId), eq(messages.receiverId, otherUserId)),
+          and(eq(messages.senderId, otherUserId), eq(messages.receiverId, userId))
+        )
+      )
+    )
+    .orderBy(asc(messages.createdAt));
+}
+
+export async function getReviews(filters: {
+  sellerId?: number;
+  storeId?: number;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { data: [], total: 0, avgRating: 0 };
+  
+  const conditions = [];
+  if (filters.sellerId) {
+    conditions.push(eq(reviews.sellerId, filters.sellerId));
+  }
+  // Note: storeId filter removed as reviews table doesn't have storeId column
+  
+  const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+  
+  const allReviews = await db.select().from(reviews).where(whereClause);
+  const total = allReviews.length;
+  const avgRating = total > 0
+    ? allReviews.reduce((sum, r) => sum + r.rating, 0) / total
+    : 0;
+  
+  const data = allReviews
+    .slice(filters.offset || 0, (filters.offset || 0) + (filters.limit || 10));
+  
+  return { data, total, avgRating };
+}
+
+export async function getReviewById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.select().from(reviews).where(eq(reviews.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function updateReview(id: number, data: { rating: number; comment?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.update(reviews).set(data).where(eq(reviews.id, id));
+  return { success: true };
+}
+
+export async function deleteReview(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  await db.delete(reviews).where(eq(reviews.id, id));
+  return { success: true };
+}

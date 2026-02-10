@@ -172,3 +172,32 @@
 - [x] Corrigir conflito entre Manus OAuth e Supabase Auth
 - [x] Fazer botões Login/Cadastro aparecerem quando usuário não autenticado
 - [x] Garantir que auth.me retorne null quando não há sessão Supabase
+
+
+## Fase 8: Funcionalidades Restantes do Frontend
+
+### Sistema de Mensagens
+- [x] Criar backend de mensagens (endpoints CRUD)
+- [x] Criar página de chat/mensagens
+- [x] Implementar listagem de conversas
+- [x] Implementar envio e recebimento de mensagens
+- [ ] Adicionar notificações de novas mensagens
+
+### Perfil de Usuário
+- [x] Criar página de perfil do usuário
+- [x] Implementar edição de dados pessoais
+- [ ] Implementar upload de avatar
+- [x] Adicionar edição de telefone e localização
+
+### Perfil de Loja
+- [x] Criar página de perfil da loja
+- [x] Implementar visualização pública da loja
+- [ ] Implementar edição de dados da loja (apenas owner)
+- [x] Adicionar listagem de veículos da loja
+
+### Sistema de Avaliações
+- [x] Criar backend de reviews (endpoints CRUD)
+- [x] Implementar formulário de avaliação
+- [x] Exibir avaliações na página do vendedor/loja
+- [x] Calcular e exibir média de avaliações
+- [ ] Adicionar filtros e ordenação de reviews

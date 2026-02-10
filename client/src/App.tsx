@@ -13,6 +13,9 @@ import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import CreateCar from "./pages/CreateCar";
 import MyCars from "./pages/MyCars";
+import Messages from "./pages/Messages";
+import Profile from "./pages/Profile";
+import StoreProfile from "./pages/StoreProfile";
 
 function Router() {
   return (
@@ -26,6 +29,9 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/cars/new" component={CreateCar} />
       <Route path="/dashboard/my-cars" component={MyCars} />
+      <Route path="/messages" component={Messages} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/stores/:id" component={StoreProfile} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
