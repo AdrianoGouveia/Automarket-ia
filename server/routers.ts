@@ -7,6 +7,7 @@ import { z } from "zod";
 import * as db from "./db";
 import { uploadCarPhoto, deleteCarPhoto } from "./supabase-storage";
 import { signUpUser, signInUser, signOutUser } from "./supabase-auth";
+import { notifyNewMessage, notifyNewReview } from "./email-notifications";
 import { nanoid } from "nanoid";
 
 // ============= VALIDATION SCHEMAS =============
@@ -600,13 +601,27 @@ export const appRouter = router({
         receiverId: z.number().int(),
         content: z.string().min(1).max(1000),
       }))
-      .mutation(async ({ ctx, input }) => {
-        return await db.createMessage({
+      .mutation(async ({ input, ctx }) => {
+        const message = await db.createMessage({
           senderId: ctx.user.id,
           receiverId: input.receiverId,
           carId: input.carId,
           content: input.content,
         });
+
+        // Send email notification (fire and forget)
+        const receiver = await db.getUserById(input.receiverId);
+        const car = await db.getCarById(input.carId);
+        if (receiver?.email && car) {
+          notifyNewMessage({
+            recipientEmail: receiver.email,
+            senderName: ctx.user.name || 'Usuário',
+            carTitle: `${car.brand} ${car.model}`,
+            messagePreview: input.content.substring(0, 100),
+          }).catch(err => console.error('Email notification failed:', err));
+        }
+
+        return message;
       }),
 
     markAsRead: protectedProcedure
@@ -631,18 +646,36 @@ export const appRouter = router({
         return await db.getReviews(input);
       }),
 
-    create: protectedProcedure
+     create: protectedProcedure
       .input(z.object({
         carId: z.number().int(),
         sellerId: z.number().int(),
         rating: z.number().int().min(1).max(5),
         comment: z.string().max(500).optional(),
       }))
-      .mutation(async ({ ctx, input }) => {
-        return await db.createReview({
-          ...input,
+      .mutation(async ({ input, ctx }) => {
+        const review = await db.createReview({
           reviewerId: ctx.user.id,
+          carId: input.carId,
+          sellerId: input.sellerId,
+          rating: input.rating,
+          comment: input.comment,
         });
+
+        // Send email notification (fire and forget)
+        const seller = await db.getUserById(input.sellerId);
+        const car = await db.getCarById(input.carId);
+        if (seller?.email && car) {
+          notifyNewReview({
+            sellerEmail: seller.email,
+            reviewerName: ctx.user.name || 'Usuário',
+            rating: input.rating,
+            comment: input.comment,
+            carTitle: `${car.brand} ${car.model}`,
+          }).catch(err => console.error('Email notification failed:', err));
+        }
+
+        return review;
       }),
 
     update: protectedProcedure
@@ -673,6 +706,69 @@ export const appRouter = router({
       }),
   }),
 
+  // ============= INTEGRATION ROUTER =============
+  integration: router({
+    bulkImport: protectedProcedure
+      .input(z.object({
+        cars: z.array(createCarSchema).max(50),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        // Check if user is store owner
+        const user = await db.getUserById(ctx.user.id);
+        if (!user || (user.role !== 'store_owner' && user.role !== 'admin')) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Apenas donos de lojas podem fazer importação em massa',
+          });
+        }
+
+        const results = {
+          success: [] as number[],
+          failed: [] as { index: number; error: string }[],
+        };
+
+        for (let i = 0; i < input.cars.length; i++) {
+          try {
+            const carData = input.cars[i];
+            const car = await db.createCar({
+              ...carData,
+              price: carData.price.toString(),
+              sellerId: ctx.user.id,
+              status: 'DRAFT',
+            });
+            results.success.push(car.id);
+          } catch (error: any) {
+            results.failed.push({
+              index: i,
+              error: error.message || 'Erro desconhecido',
+            });
+          }
+        }
+
+        return {
+          total: input.cars.length,
+          imported: results.success.length,
+          failed: results.failed.length,
+          details: results,
+        };
+      }),
+
+    getImportStatus: protectedProcedure
+      .input(z.object({
+        jobId: z.string(),
+      }))
+      .query(async ({ input }) => {
+        // Mock implementation - in production, this would check a job queue
+        return {
+          jobId: input.jobId,
+          status: 'completed',
+          progress: 100,
+          message: 'Importação concluída',
+        };
+      }),
+  }),
+
+  // ============= ADMIN ROUTER =============
   admin: router({
     // Dashboard Statistics
     dashboard: adminProcedure.query(async () => {

@@ -12,8 +12,8 @@
 - [x] Criar tabela transactions (transações)
 - [x] Criar enums (user_role, transmission_type, fuel_type, car_status)
 - [x] Criar índices para performance
-- [ ] Criar trigger para search_vector (busca textual)
-- [ ] Implementar políticas RLS (Row Level Security)
+- [x] Criar trigger para search_vector (busca textual)
+- [x] Implementar políticas RLS (Row Level Security)
 
 ### Backend API
 - [x] Configurar Fastify como servidor API
@@ -27,9 +27,8 @@
 - [x] Implementar sistema de mensagens em tempo real
 - [x] Implementar endpoints de lojas (stores)
 - [x] Implementar endpoints de fotos (upload, delete, reorder)
-- [x] Implementar endpoints de reviews (avaliações)
-- [ ] Implementar endpoints de integração (bulk-import)
-- [x] Implementar endpoints admin (moderação, dashboard)
+- [x] Implementar endpoints de reviews (avalia- [x] Implementar endpoints de integração (bulk-import)
+- [x] Implementar notificações por email(moderação, dashboard)
 - [x] Implementar validações de negócio (limites por role, year_model >= year_fab)
 - [ ] Implementar notificações por email
 
@@ -39,14 +38,14 @@
 - [x] Criar página Home (landing page)
 - [x] Criar página de listagem de veículos com filtros
 - [x] Criar página de detalhes do veículo
-- [ ] Criar formulário de cadastro de anúncio
-- [ ] Criar formulário de upload de fotos
-- [ ] Criar dashboard do usuário
-- [ ] Criar dashboard administrativo
-- [ ] Criar sistema de mensagens (chat)
-- [ ] Criar página de perfil do usuário
-- [ ] Criar página de perfil da loja
-- [ ] Criar sistema de avaliações
+- [x] Criar formulário de cadastro de anúncio
+- [x] Criar formulário de upload de fotos
+- [x] Criar dashboard do usuário
+- [x] Criar dashboard administrativo
+- [x] Criar sistema de mensagens (chat)
+- [x] Criar página de perfil do usuário
+- [x] Criar página de perfil da loja
+- [x] Criar sistema de avaliações
 - [x] Implementar autenticação (login/logout)
 - [x] Implementar busca e filtros avançados
 - [x] Implementar responsividade mobile
@@ -55,7 +54,7 @@
 ### Storage & Upload
 - [x] Configurar S3 para armazenamento de imagens
 - [x] Implementar processamento de imagens (thumbnail, medium, large)
-- [ ] Implementar upload múltiplo de fotos (max 15)
+- [x] Implementar upload múltiplo de fotos (max 15)
 
 ## Fase 2: Professional Features
 
@@ -201,3 +200,14 @@
 - [x] Exibir avaliações na página do vendedor/loja
 - [x] Calcular e exibir média de avaliações
 - [ ] Adicionar filtros e ordenação de reviews
+
+
+## Fase 9: Completar Itens Pendentes da Fase 1
+
+### Database & Schema
+- [x] Implementar trigger para search_vector (busca textual)
+- [x] Implementar políticas RLS (Row Level Security)
+
+### Backend API
+- [x] Implementar endpoint de bulk-import para lojas
+- [x] Implementar sistema de notificações por email
