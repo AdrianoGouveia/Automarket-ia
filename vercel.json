@@ -1,32 +1,12 @@
 {
   "version": 2,
   "buildCommand": "pnpm install --no-frozen-lockfile && pnpm build",
+  "outputDirectory": "dist/public",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "builds": [
+  "rewrites": [
     {
-      "src": "dist/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/dist/index.js"
-    },
-    {
-      "src": "/favicon\\.(ico|svg)",
-      "dest": "/dist/public/favicon.svg"
-    },
-    {
-      "src": "/assets/(.*)",
-      "dest": "/dist/public/assets/$1"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/dist/public/index.html"
+      "source": "/api/(.*)",
+      "destination": "/api"
     }
   ]
 }
