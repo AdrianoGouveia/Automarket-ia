@@ -230,5 +230,5 @@
 
 - [x] Corrigir ordem de execução SQL (mover funções helper antes das políticas RLS)
 
-- [ ] Criar checkpoint do projeto
+- [x] Criar checkpoint do projeto
 - [ ] Fazer commit e push para GitHub (https://github.com/AdrianoGouveia/Automarket)
