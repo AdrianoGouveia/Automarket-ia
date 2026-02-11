@@ -5,8 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
-import { uploadCarPhoto, deleteCarPhoto } from "./supabase-storage";
-import { signUpUser, signInUser, signOutUser } from "./supabase-auth";
+import { uploadCarPhoto, deleteCarPhoto } from "./manus-storage";
 import { notifyNewMessage, notifyNewReview } from "./email-notifications";
 import { validateApiKey, extractApiKey } from "./api-key-middleware";
 import { getStoreAnalytics, getVehiclesCreatedTrend, getMostViewedVehicles, getMessagesReceivedTrend } from "./store-analytics";
@@ -126,128 +125,18 @@ export const appRouter = router({
   system: systemRouter,
   
   auth: router({
+    // Manus OAuth handles authentication automatically via protectedProcedure
     me: publicProcedure.query(async ({ ctx }) => {
-      // Check for Supabase token in Authorization header
-      const authHeader = ctx.req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return null;
-      }
-      
-      const token = authHeader.split(' ')[1];
-      if (!token || token === 'null' || token === 'undefined') {
-        return null;
-      }
-      
-      try {
-        // Validate Supabase token and get user
-        const { getCurrentUser } = await import('./supabase-auth');
-        const supabaseUser = await getCurrentUser(token);
-        
-        if (!supabaseUser) {
-          return null;
-        }
-        
-        // Get or create user in our database
-        const user = await db.getUserByOpenId(supabaseUser.id);
-        
-        if (!user) {
-          // Create user if doesn't exist
-          await db.upsertUser({
-            openId: supabaseUser.id,
-            email: supabaseUser.email || '',
-            name: supabaseUser.user_metadata?.full_name || supabaseUser.email?.split('@')[0] || 'User',
-            loginMethod: 'email',
-            role: 'user',
-          });
-          
-          const newUser = await db.getUserByOpenId(supabaseUser.id);
-          return newUser;
-        }
-        
-        return user;
-      } catch (error) {
-        console.error('[Auth] Error validating token:', error);
-        return null;
-      }
+      // Return current user from Manus OAuth context
+      return ctx.user || null;
     }),
     
-    signUp: publicProcedure
-      .input(z.object({
-        email: z.string().email(),
-        password: z.string().min(6),
-        fullName: z.string().min(3),
-      }))
-      .mutation(async ({ input }) => {
-        try {
-          const result = await signUpUser(input.email, input.password, input.fullName);
-          
-          // Create user profile in our database
-          if (result.user) {
-            await db.upsertUser({
-              openId: result.user.id,
-              email: result.user.email || input.email,
-              name: input.fullName,
-              loginMethod: 'email',
-              role: 'user',
-            });
-          }
-          
-          return {
-            success: true,
-            user: result.user,
-            session: result.session,
-          };
-        } catch (error: any) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: error.message || 'Erro ao criar conta',
-          });
-        }
-      }),
-    
-    signIn: publicProcedure
-      .input(z.object({
-        email: z.string().email(),
-        password: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        try {
-          const result = await signInUser(input.email, input.password);
-          
-          // Update user last sign in
-          if (result.user) {
-            await db.upsertUser({
-              openId: result.user.id,
-              email: result.user.email || input.email,
-              lastSignedIn: new Date(),
-            });
-          }
-          
-          return {
-            success: true,
-            user: result.user,
-            session: result.session,
-          };
-        } catch (error: any) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: error.message || 'Email ou senha inválidos',
-          });
-        }
-      }),
-    
-    logout: publicProcedure.mutation(async ({ ctx }) => {
-      try {
-        await signOutUser();
-        const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-        return { success: true } as const;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erro ao fazer logout',
-        });
-      }
+    // Manus OAuth handles login/logout automatically
+    // Users login via getLoginUrl() and logout via auth.logout.useMutation()
+    logout: protectedProcedure.mutation(async ({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie('session', { ...cookieOptions, maxAge: -1 });
+      return { success: true } as const;
     }),
   }),
 

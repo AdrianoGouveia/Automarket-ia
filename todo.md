@@ -264,3 +264,14 @@
 - [x] Corrigir vercel.json para servir arquivos estáticos corretamente
 - [x] Verificar output directory (dist/public vs dist)
 - [ ] Testar deploy no Vercel
+
+
+## Fase 14: Migração Supabase → Manus (100% Manus)
+- [x] Substituir Supabase Auth por Manus OAuth no backend
+- [x] Atualizar routers.ts para usar ctx.user do Manus OAuth
+- [x] Migrar supabase-storage.ts para usar storagePut/storageGet do Manus S3
+- [x] Atualizar frontend para usar getLoginUrl() do Manus
+- [x] Remover @supabase/supabase-js das dependências
+- [x] Remover variáveis VITE_SUPABASE_* do projeto
+- [x] Atualizar documentação com configuração 100% Manus
+- [ ] Testar autenticação e upload de fotos
