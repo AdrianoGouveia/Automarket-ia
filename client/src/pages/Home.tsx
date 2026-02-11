@@ -296,9 +296,9 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">Plataforma</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><Link href="/cars"><a className="hover:text-foreground transition-colors">Explorar</a></Link></li>
-                <li><Link href="/stores"><a className="hover:text-foreground transition-colors">Lojas</a></Link></li>
-                <li><Link href="/login"><a className="hover:text-foreground transition-colors">Anunciar</a></Link></li>
+                <li><Link href="/cars" className="hover:text-foreground transition-colors">Explorar</Link></li>
+                <li><Link href="/stores" className="hover:text-foreground transition-colors">Lojas</Link></li>
+                <li><Link href="/login" className="hover:text-foreground transition-colors">Anunciar</Link></li>
               </ul>
             </div>
             <div>

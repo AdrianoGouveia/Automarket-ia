@@ -299,3 +299,14 @@
 - [x] Remover código relacionado a Manus OAuth de const.ts
 - [x] Testar fluxo completo de autenticação
 - [ ] Criar checkpoint final
+
+
+## Fase 17: Corrigir Erro React #520/#300 após Login
+- [x] Investigar erro React #520 e #300 nos logs do navegador
+- [x] Verificar resposta do endpoint auth.me após login
+- [x] Verificar se auth.signIn está retornando dados corretos
+- [x] Corrigir problema de hidratação/renderização no useAuth
+- [x] Corrigir nested anchor tags no footer da Home
+- [x] Atualizar auth.me para usar Supabase session
+- [ ] Testar login completo com usuário ag@bitmob.com.br
+- [ ] Criar checkpoint após correção

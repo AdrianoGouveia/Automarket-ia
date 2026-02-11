@@ -126,10 +126,37 @@ export const appRouter = router({
   system: systemRouter,
   
   auth: router({
-    // Manus OAuth handles authentication automatically via protectedProcedure
+    // Get current user from Supabase session
     me: publicProcedure.query(async ({ ctx }) => {
-      // Return current user from Manus OAuth context
-      return ctx.user || null;
+      const sessionToken = ctx.req.cookies['session'];
+      
+      if (!sessionToken) {
+        return null;
+      }
+
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser(sessionToken);
+        
+        if (error || !user) {
+          return null;
+        }
+
+        // Return user data in the expected format
+        return {
+          id: parseInt(user.id) || 0,
+          openId: user.id,
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
+          email: user.email || null,
+          loginMethod: 'email',
+          role: (user.user_metadata?.role || 'user') as 'user' | 'admin' | 'store_owner',
+          createdAt: new Date(user.created_at),
+          updatedAt: new Date(user.updated_at || user.created_at),
+          lastSignedIn: new Date(user.last_sign_in_at || user.created_at),
+        };
+      } catch (error) {
+        console.error('Error getting Supabase user:', error);
+        return null;
+      }
     }),
     
     // Supabase Auth endpoints
