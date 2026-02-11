@@ -11,6 +11,7 @@ import { validateApiKey, extractApiKey } from "./api-key-middleware";
 import { getStoreAnalytics, getVehiclesCreatedTrend, getMostViewedVehicles, getMessagesReceivedTrend } from "./store-analytics";
 import { getNewUsersPerDay, getCarsCreatedPerDay, getCarsByBrand, getCarsByFuel } from "./admin-analytics";
 import { nanoid } from "nanoid";
+import { supabase } from "./supabase";
 
 // ============= VALIDATION SCHEMAS =============
 
@@ -131,11 +132,75 @@ export const appRouter = router({
       return ctx.user || null;
     }),
     
-    // Manus OAuth handles login/logout automatically
-    // Users login via getLoginUrl() and logout via auth.logout.useMutation()
+    // Supabase Auth endpoints
+    signUp: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string().min(6),
+        fullName: z.string().min(2),
+      }))
+      .mutation(async ({ input }) => {
+        const { data, error } = await supabase.auth.signUp({
+          email: input.email,
+          password: input.password,
+          options: {
+            data: {
+              full_name: input.fullName,
+            },
+          },
+        });
+
+        if (error) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: error.message,
+          });
+        }
+
+        // Create user in database
+        if (data.user) {
+          await db.upsertUser({
+            openId: data.user.id,
+            email: data.user.email!,
+            name: input.fullName,
+            loginMethod: 'supabase',
+          });
+        }
+
+        return { success: true, user: data.user };
+      }),
+
+    signIn: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        password: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: input.email,
+          password: input.password,
+        });
+
+        if (error) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Email ou senha incorretos',
+          });
+        }
+
+        // Set session cookie
+        if (data.session) {
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie('session', data.session.access_token, cookieOptions);
+        }
+
+        return { success: true, user: data.user };
+      }),
+
     logout: protectedProcedure.mutation(async ({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie('session', { ...cookieOptions, maxAge: -1 });
+      await supabase.auth.signOut();
       return { success: true } as const;
     }),
   }),

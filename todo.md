@@ -275,3 +275,17 @@
 - [x] Remover variáveis VITE_SUPABASE_* do projeto
 - [x] Atualizar documentação com configuração 100% Manus
 - [ ] Testar autenticação e upload de fotos
+
+
+## Fase 15: Implementar Supabase Auth (Email e Senha)
+- [x] Reinstalar @supabase/supabase-js
+- [x] Criar cliente Supabase no frontend e backend
+- [x] Implementar endpoint auth.signUp (email, senha, nome)
+- [x] Implementar endpoint auth.signIn (email, senha)
+- [x] Implementar endpoint auth.logout
+- [x] Criar página /login com formulário de email e senha
+- [x] Criar página /signup com formulário de cadastro
+- [x] Atualizar Home.tsx para usar /login e /signup
+- [ ] Atualizar useAuth para usar Supabase session
+- [ ] Testar fluxo completo de cadastro e login
+- [ ] Documentar configuração do Supabase

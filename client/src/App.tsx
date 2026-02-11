@@ -16,11 +16,15 @@ import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 import StoreProfile from "./pages/StoreProfile";
 import StoreAnalytics from "./pages/StoreAnalytics";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={SignUp} />
       <Route path="/cars" component={Cars} />
       <Route path="/cars/:id" component={CarDetail} />
       <Route path="/admin" component={AdminDashboard} />

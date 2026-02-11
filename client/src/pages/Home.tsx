@@ -7,7 +7,7 @@ import { Link } from "wouter";
 import { Search, Car, Shield, Zap, TrendingUp, MessageSquare, Star } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { getLoginUrl } from "@/const";
+
 
 export default function Home() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -43,12 +43,12 @@ export default function Home() {
               </>
             ) : (
               <>
-                <a href={getLoginUrl()}>
+                <Link href="/login">
                   <Button variant="ghost" size="sm">Entrar</Button>
-                </a>
-                <a href={getLoginUrl()}>
+                </Link>
+                <Link href="/signup">
                   <Button size="sm">Criar Conta</Button>
-                </a>
+                </Link>
               </>
             )}
           </div>
@@ -265,9 +265,9 @@ export default function Home() {
               </Link>
             ) : (
               <>
-                <a href={getLoginUrl()}>
+                <Link href="/signup">
                   <Button size="lg">Começar Agora</Button>
-                </a>
+                </Link>
                 <Link href="/cars">
                   <Button size="lg" variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">Explorar Veículos</Button>
                 </Link>
@@ -295,7 +295,7 @@ export default function Home() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><Link href="/cars"><a className="hover:text-foreground transition-colors">Explorar</a></Link></li>
                 <li><Link href="/stores"><a className="hover:text-foreground transition-colors">Lojas</a></Link></li>
-                <li><a href={getLoginUrl()} className="hover:text-foreground transition-colors">Anunciar</a></li>
+                <li><Link href="/login"><a className="hover:text-foreground transition-colors">Anunciar</a></Link></li>
               </ul>
             </div>
             <div>
