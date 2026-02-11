@@ -289,3 +289,13 @@
 - [ ] Atualizar useAuth para usar Supabase session
 - [ ] Testar fluxo completo de cadastro e login
 - [ ] Documentar configuração do Supabase
+
+
+## Fase 16: Correções de Autenticação e UI
+- [x] Investigar por que botões Login/Cadastro não aparecem na Home
+- [x] Remover todas as referências ao Manus OAuth (getLoginUrl, OAUTH_SERVER_URL)
+- [x] Corrigir useAuth para usar apenas Supabase session
+- [x] Adicionar nome do usuário (primeiro nome) no header quando logado
+- [x] Remover código relacionado a Manus OAuth de const.ts
+- [x] Testar fluxo completo de autenticação
+- [ ] Criar checkpoint final

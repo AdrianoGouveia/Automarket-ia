@@ -40,6 +40,9 @@ export default function Home() {
                 <Link href="/cars/new">
                   <Button size="sm">Anunciar Veículo</Button>
                 </Link>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Olá, {user?.name?.split(' ')[0] || 'Usuário'}
+                </span>
               </>
             ) : (
               <>
