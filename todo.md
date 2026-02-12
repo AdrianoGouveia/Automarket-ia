@@ -310,3 +310,14 @@
 - [x] Atualizar auth.me para usar Supabase session
 - [ ] Testar login completo com usuário ag@bitmob.com.br
 - [ ] Criar checkpoint após correção
+
+
+## Fase 18: Corrigir Erro "Cannot read properties of undefined (reading 'session')"
+- [x] Investigar erro no auth.signIn que causa undefined session
+- [x] Verificar resposta do Supabase signInWithPassword
+- [x] Corrigir acesso a data.session no backend
+- [x] Remover alert "Bem-vindo de volta" da página de login
+- [x] Adicionar validação de data e data.session
+- [x] Adicionar upsertUser no signIn para sincronizar com banco
+- [ ] Testar login completo sem crashes
+- [ ] Criar checkpoint após correção

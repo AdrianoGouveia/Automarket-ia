@@ -16,7 +16,6 @@ export default function Login() {
 
   const signIn = trpc.auth.signIn.useMutation({
     onSuccess: () => {
-      alert("Login realizado! Bem-vindo de volta ao AutoMarket AI.");
       setLocation("/dashboard");
     },
     onError: (error) => {

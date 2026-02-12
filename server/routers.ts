@@ -208,17 +208,25 @@ export const appRouter = router({
           password: input.password,
         });
 
-        if (error) {
+        if (error || !data || !data.session) {
           throw new TRPCError({
             code: 'UNAUTHORIZED',
-            message: 'Email ou senha incorretos',
+            message: error?.message || 'Email ou senha incorretos',
           });
         }
 
         // Set session cookie
-        if (data.session) {
-          const cookieOptions = getSessionCookieOptions(ctx.req);
-          ctx.res.cookie('session', data.session.access_token, cookieOptions);
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie('session', data.session.access_token, cookieOptions);
+
+        // Upsert user in database
+        if (data.user) {
+          await db.upsertUser({
+            openId: data.user.id,
+            email: data.user.email!,
+            name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User',
+            loginMethod: 'supabase',
+          });
         }
 
         return { success: true, user: data.user };
