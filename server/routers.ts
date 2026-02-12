@@ -12,7 +12,7 @@ import { getStoreAnalytics, getVehiclesCreatedTrend, getMostViewedVehicles, getM
 import { getNewUsersPerDay, getCarsCreatedPerDay, getCarsByBrand, getCarsByFuel } from "./admin-analytics";
 import { nanoid } from "nanoid";
 import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 // Supabase removed - using bcrypt + JWT instead
 
 // ============= VALIDATION SCHEMAS =============

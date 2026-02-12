@@ -357,3 +357,10 @@
 - [x] Importar bcrypt e jsonwebtoken no topo do arquivo
 - [x] Reiniciar servidor
 - [ ] Testar login com ag@bitmob.com.br / 123456
+
+
+## Fase 23: Corrigir Import do jsonwebtoken (Solução Definitiva)
+- [x] Verificar documentação do jsonwebtoken para import correto
+- [x] Usar import default em vez de import *
+- [x] Testar localmente
+- [ ] Criar checkpoint e publicar
