@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE users SET passwordHash = '$2b$10$snXbvYz6vFlqI/nwwYOzM.YKop9WjRa92JML5.T7FzuM9UsbcQ1O2' WHERE email = 'ag@bitmob.com.br';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user bwqU5A7GQjUK5RJ.9a9483255b1d --database CXA36gGcrd9BuVFeVh9FQA --execute UPDATE users SET passwordHash = '$2b$10$snXbvYz6vFlqI/nwwYOzM.YKop9WjRa92JML5.T7FzuM9UsbcQ1O2' WHERE email = 'ag@bitmob.com.br';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 365
+}

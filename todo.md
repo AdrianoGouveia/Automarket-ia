@@ -344,3 +344,16 @@
 - [x] Adicionar getUserByEmail no db.ts
 - [x] Testar com vitest (10 testes passando)
 - [ ] Criar checkpoint final
+
+
+## Fase 21: Resetar Senha da Conta Existente
+- [x] Gerar hash bcrypt da senha 123456
+- [x] Atualizar passwordHash no banco para ag@bitmob.com.br
+- [ ] Testar login com nova senha
+
+
+## Fase 22: Corrigir Erro "jwt.sign is not a function"
+- [x] Substituir dynamic imports (await import) por static imports
+- [x] Importar bcrypt e jsonwebtoken no topo do arquivo
+- [x] Reiniciar servidor
+- [ ] Testar login com ag@bitmob.com.br / 123456

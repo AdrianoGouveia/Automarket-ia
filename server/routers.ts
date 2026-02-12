@@ -11,6 +11,8 @@ import { validateApiKey, extractApiKey } from "./api-key-middleware";
 import { getStoreAnalytics, getVehiclesCreatedTrend, getMostViewedVehicles, getMessagesReceivedTrend } from "./store-analytics";
 import { getNewUsersPerDay, getCarsCreatedPerDay, getCarsByBrand, getCarsByFuel } from "./admin-analytics";
 import { nanoid } from "nanoid";
+import * as bcrypt from 'bcrypt';
+import * as jwt from 'jsonwebtoken';
 // Supabase removed - using bcrypt + JWT instead
 
 // ============= VALIDATION SCHEMAS =============
@@ -135,7 +137,6 @@ export const appRouter = router({
       }
 
       try {
-        const jwt = await import('jsonwebtoken');
         const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET!) as { userId: number; openId: string; email: string };
         
         // Get user from database
@@ -159,8 +160,6 @@ export const appRouter = router({
         fullName: z.string().min(2),
       }))
       .mutation(async ({ input }) => {
-        const bcrypt = await import('bcrypt');
-        
         // Check if user exists
         const existing = await db.getUserByEmail(input.email);
         if (existing) {
@@ -200,9 +199,6 @@ export const appRouter = router({
         password: z.string(),
       }))
       .mutation(async ({ input, ctx }) => {
-        const bcrypt = await import('bcrypt');
-        const jwt = await import('jsonwebtoken');
-        
         // Get user by email
         const user = await db.getUserByEmail(input.email);
         if (!user || !user.passwordHash) {
