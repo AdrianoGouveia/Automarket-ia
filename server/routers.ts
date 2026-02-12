@@ -11,7 +11,7 @@ import { validateApiKey, extractApiKey } from "./api-key-middleware";
 import { getStoreAnalytics, getVehiclesCreatedTrend, getMostViewedVehicles, getMessagesReceivedTrend } from "./store-analytics";
 import { getNewUsersPerDay, getCarsCreatedPerDay, getCarsByBrand, getCarsByFuel } from "./admin-analytics";
 import { nanoid } from "nanoid";
-import { supabase } from "./supabase";
+// Supabase removed - using bcrypt + JWT instead
 
 // ============= VALIDATION SCHEMAS =============
 
@@ -126,7 +126,7 @@ export const appRouter = router({
   system: systemRouter,
   
   auth: router({
-    // Get current user from Supabase session
+    // Get current user from JWT session
     me: publicProcedure.query(async ({ ctx }) => {
       const sessionToken = ctx.req.cookies['session'];
       
@@ -135,31 +135,23 @@ export const appRouter = router({
       }
 
       try {
-        const { data: { user }, error } = await supabase.auth.getUser(sessionToken);
+        const jwt = await import('jsonwebtoken');
+        const decoded = jwt.verify(sessionToken, process.env.JWT_SECRET!) as { userId: number; openId: string; email: string };
         
-        if (error || !user) {
+        // Get user from database
+        const user = await db.getUserById(decoded.userId);
+        if (!user) {
           return null;
         }
 
-        // Return user data in the expected format
-        return {
-          id: parseInt(user.id) || 0,
-          openId: user.id,
-          name: user.user_metadata?.full_name || user.email?.split('@')[0] || null,
-          email: user.email || null,
-          loginMethod: 'email',
-          role: (user.user_metadata?.role || 'user') as 'user' | 'admin' | 'store_owner',
-          createdAt: new Date(user.created_at),
-          updatedAt: new Date(user.updated_at || user.created_at),
-          lastSignedIn: new Date(user.last_sign_in_at || user.created_at),
-        };
+        return user;
       } catch (error) {
-        console.error('Error getting Supabase user:', error);
+        console.error('Error verifying JWT:', error);
         return null;
       }
     }),
     
-    // Supabase Auth endpoints
+    // bcrypt + JWT Auth endpoints
     signUp: publicProcedure
       .input(z.object({
         email: z.string().email(),
@@ -167,34 +159,39 @@ export const appRouter = router({
         fullName: z.string().min(2),
       }))
       .mutation(async ({ input }) => {
-        const { data, error } = await supabase.auth.signUp({
+        const bcrypt = await import('bcrypt');
+        
+        // Check if user exists
+        const existing = await db.getUserByEmail(input.email);
+        if (existing) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Email já cadastrado',
+          });
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(input.password, 10);
+
+        // Create user
+        const openId = crypto.randomUUID();
+        await db.upsertUser({
+          openId,
           email: input.email,
-          password: input.password,
-          options: {
-            data: {
-              full_name: input.fullName,
-            },
-          },
+          name: input.fullName,
+          loginMethod: 'email',
+          passwordHash,
         });
 
-        if (error) {
+        const user = await db.getUserByOpenId(openId);
+        if (!user) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: error.message,
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Erro ao criar usuário',
           });
         }
 
-        // Create user in database
-        if (data.user) {
-          await db.upsertUser({
-            openId: data.user.id,
-            email: data.user.email!,
-            name: input.fullName,
-            loginMethod: 'supabase',
-          });
-        }
-
-        return { success: true, user: data.user };
+        return { success: true, user };
       }),
 
     signIn: publicProcedure
@@ -203,39 +200,44 @@ export const appRouter = router({
         password: z.string(),
       }))
       .mutation(async ({ input, ctx }) => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: input.email,
-          password: input.password,
-        });
-
-        if (error || !data || !data.session) {
+        const bcrypt = await import('bcrypt');
+        const jwt = await import('jsonwebtoken');
+        
+        // Get user by email
+        const user = await db.getUserByEmail(input.email);
+        if (!user || !user.passwordHash) {
           throw new TRPCError({
             code: 'UNAUTHORIZED',
-            message: error?.message || 'Email ou senha incorretos',
+            message: 'Email ou senha incorretos',
           });
         }
+
+        // Verify password
+        const valid = await bcrypt.compare(input.password, user.passwordHash);
+        if (!valid) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Email ou senha incorretos',
+          });
+        }
+
+        // Generate JWT
+        const token = jwt.sign(
+          { userId: user.id, openId: user.openId, email: user.email },
+          process.env.JWT_SECRET!,
+          { expiresIn: '7d' }
+        );
 
         // Set session cookie
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie('session', data.session.access_token, cookieOptions);
+        ctx.res.cookie('session', token, cookieOptions);
 
-        // Upsert user in database
-        if (data.user) {
-          await db.upsertUser({
-            openId: data.user.id,
-            email: data.user.email!,
-            name: data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User',
-            loginMethod: 'supabase',
-          });
-        }
-
-        return { success: true, user: data.user };
+        return { success: true, user };
       }),
 
     logout: protectedProcedure.mutation(async ({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie('session', { ...cookieOptions, maxAge: -1 });
-      await supabase.auth.signOut();
       return { success: true } as const;
     }),
   }),

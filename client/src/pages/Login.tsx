@@ -15,10 +15,12 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const signIn = trpc.auth.signIn.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('[Login] signIn success:', data);
       setLocation("/dashboard");
     },
     onError: (error) => {
+      console.error('[Login] signIn error:', error);
       alert(`Erro no login: ${error.message}`);
     },
   });

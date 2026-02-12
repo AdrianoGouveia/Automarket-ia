@@ -321,3 +321,26 @@
 - [x] Adicionar upsertUser no signIn para sincronizar com banco
 - [ ] Testar login completo sem crashes
 - [ ] Criar checkpoint após correção
+
+
+## Fase 19: Investigação Profunda do Erro de Session
+- [ ] Verificar logs do servidor (devserver.log) para erros backend
+- [ ] Adicionar console.log no auth.me para debug
+- [ ] Testar resposta real do Supabase.auth.getUser()
+- [ ] Verificar se VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY estão corretos
+- [ ] Criar teste end-to-end de login com vitest
+- [ ] Corrigir problema identificado
+- [ ] Criar checkpoint após correção validada
+
+
+## Fase 20: Substituir Supabase Auth por bcrypt + JWT (Solução Definitiva)
+- [x] Remover @supabase/supabase-js
+- [x] Instalar bcrypt e jsonwebtoken  
+- [x] Adicionar coluna passwordHash na tabela user
+- [x] Implementar signUp com bcrypt.hash()
+- [x] Implementar signIn com bcrypt.compare() + JWT
+- [x] Implementar auth.me com JWT.verify()
+- [x] Remover import do Supabase de routers.ts
+- [x] Adicionar getUserByEmail no db.ts
+- [x] Testar com vitest (10 testes passando)
+- [ ] Criar checkpoint final
