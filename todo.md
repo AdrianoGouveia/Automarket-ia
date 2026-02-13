@@ -364,3 +364,12 @@
 - [x] Usar import default em vez de import *
 - [x] Testar localmente
 - [ ] Criar checkpoint e publicar
+
+
+## Fase 24: Corrigir auth.me - Remover Código Supabase Restante
+- [x] Verificar auth.me para código Supabase
+- [x] Remover pacote @supabase/supabase-js
+- [x] Remover server/supabase.ts
+- [x] Reiniciar servidor
+- [ ] Testar login completo
+- [ ] Criar checkpoint e publicar
