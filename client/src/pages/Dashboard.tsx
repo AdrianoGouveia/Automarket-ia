@@ -1,3 +1,4 @@
+import React from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,8 +18,17 @@ export default function Dashboard() {
   });
 
   // Redirect if not authenticated
-  if (!loading && !isAuthenticated) {
-    setLocation("/login");
+  React.useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      setLocation("/login");
+    }
+  }, [loading, isAuthenticated, setLocation]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -68,22 +78,18 @@ export default function Dashboard() {
       <nav className="border-b bg-background sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
-            <a className="flex items-center gap-2 font-bold text-xl">
+            <div className="flex items-center gap-2 font-bold text-xl cursor-pointer">
               <Car className="h-6 w-6 text-primary" />
               <span>AutoMarket AI</span>
-            </a>
+            </div>
           </Link>
 
           <div className="flex items-center gap-4">
-            <Link href="/cars">
-              <a className="text-sm font-medium hover:text-primary transition-colors">
-                Explorar
-              </a>
+            <Link href="/cars" className="text-sm font-medium hover:text-primary transition-colors">
+              Explorar
             </Link>
-            <Link href="/dashboard">
-              <a className="text-sm font-medium text-primary">
-                Dashboard
-              </a>
+            <Link href="/dashboard" className="text-sm font-medium text-primary">
+              Dashboard
             </Link>
             <Button
               variant="ghost"
@@ -129,7 +135,7 @@ export default function Dashboard() {
 
             return stat.href ? (
               <Link key={stat.title} href={stat.href}>
-                <a>{content}</a>
+                {content}
               </Link>
             ) : (
               <div key={stat.title}>{content}</div>

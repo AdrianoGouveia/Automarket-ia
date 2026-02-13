@@ -130,6 +130,10 @@ export const appRouter = router({
   auth: router({
     // Get current user from JWT session
     me: publicProcedure.query(async ({ ctx }) => {
+      if (!ctx.req || !ctx.req.cookies) {
+        return null;
+      }
+      
       const sessionToken = ctx.req.cookies['session'];
       
       if (!sessionToken) {

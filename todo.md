@@ -373,3 +373,10 @@
 - [x] Reiniciar servidor
 - [ ] Testar login completo
 - [ ] Criar checkpoint e publicar
+
+
+## Fase 25: Corrigir Nested Anchor Tags (Causa Raiz do Erro)
+- [x] Remover nested `<a>` tags dentro de `<Link>` no Dashboard.tsx
+- [x] Corrigir ctx.req undefined no auth.me (linha 133)
+- [x] Testar login no ambiente local - SUCESSO! Sem erros!
+- [ ] Criar checkpoint final
