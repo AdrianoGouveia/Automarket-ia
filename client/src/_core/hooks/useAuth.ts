@@ -46,9 +46,11 @@ export function useAuth(options?: UseAuthOptions) {
       "manus-runtime-user-info",
       JSON.stringify(meQuery.data)
     );
+    // Consider both isLoading and isFetching to handle initial load
+    const isLoadingOrFetching = meQuery.isLoading || meQuery.isFetching || logoutMutation.isPending;
     return {
       user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
+      loading: isLoadingOrFetching,
       error: meQuery.error ?? logoutMutation.error ?? null,
       isAuthenticated: Boolean(meQuery.data),
     };
@@ -56,6 +58,7 @@ export function useAuth(options?: UseAuthOptions) {
     meQuery.data,
     meQuery.error,
     meQuery.isLoading,
+    meQuery.isFetching,
     logoutMutation.error,
     logoutMutation.isPending,
   ]);

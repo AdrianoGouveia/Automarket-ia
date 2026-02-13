@@ -14,10 +14,15 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const utils = trpc.useUtils();
+  
   const signIn = trpc.auth.signIn.useMutation({
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('[Login] signIn success:', data);
-      setLocation("/dashboard");
+      // Invalidate auth.me to force refetch with new cookie
+      await utils.auth.me.invalidate();
+      // Use window.location.href to force full page reload with cookies
+      window.location.href = "/dashboard";
     },
     onError: (error) => {
       console.error('[Login] signIn error:', error);

@@ -229,8 +229,10 @@ export const appRouter = router({
         );
 
         // Set session cookie
-        const cookieOptions = getSessionCookieOptions(ctx.req);
-        ctx.res.cookie('session', token, cookieOptions);
+        if (ctx.res && ctx.req) {
+          const cookieOptions = getSessionCookieOptions(ctx.req);
+          ctx.res.cookie('session', token, cookieOptions);
+        }
 
         return { success: true, user };
       }),

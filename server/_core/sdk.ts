@@ -257,47 +257,29 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
+    // Use JWT session cookie instead of Manus OAuth
     const cookies = this.parseCookies(req.headers.cookie);
-    const sessionCookie = cookies.get(COOKIE_NAME);
-    const session = await this.verifySession(sessionCookie);
+    const sessionToken = cookies.get('session');
 
-    if (!session) {
-      throw ForbiddenError("Invalid session cookie");
+    if (!sessionToken) {
+      throw ForbiddenError("No session token");
     }
 
-    const sessionUserId = session.openId;
-    const signedInAt = new Date();
-    let user = await db.getUserByOpenId(sessionUserId);
-
-    // If user not in DB, sync from OAuth server automatically
-    if (!user) {
-      try {
-        const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
-        await db.upsertUser({
-          openId: userInfo.openId,
-          name: userInfo.name || null,
-          email: userInfo.email ?? null,
-          loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-          lastSignedIn: signedInAt,
-        });
-        user = await db.getUserByOpenId(userInfo.openId);
-      } catch (error) {
-        console.error("[Auth] Failed to sync user from OAuth:", error);
-        throw ForbiddenError("Failed to sync user info");
+    // Verify JWT token
+    const jwt = await import('jsonwebtoken');
+    try {
+      const decoded = jwt.default.verify(sessionToken, process.env.JWT_SECRET!) as { userId: number; email: string };
+      
+      const user = await db.getUserById(decoded.userId);
+      if (!user) {
+        throw ForbiddenError("User not found");
       }
+
+      return user;
+    } catch (error) {
+      console.error("[Auth] JWT verification failed:", error);
+      throw ForbiddenError("Invalid session token");
     }
-
-    if (!user) {
-      throw ForbiddenError("User not found");
-    }
-
-    await db.upsertUser({
-      openId: user.openId,
-      lastSignedIn: signedInAt,
-    });
-
-    return user;
   }
 }
 

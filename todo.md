@@ -380,3 +380,11 @@
 - [x] Corrigir ctx.req undefined no auth.me (linha 133)
 - [x] Testar login no ambiente local - SUCESSO! Sem erros!
 - [ ] Criar checkpoint final
+
+
+## Fase 26: Corrigir Cookie de Sessão Não Definido
+- [ ] Investigar por que ctx.res.cookie() não está sendo chamado no signIn
+- [ ] Verificar se ctx.res existe no signIn
+- [ ] Adicionar definição do cookie session após login bem-sucedido
+- [ ] Testar login e redirecionamento para /dashboard
+- [ ] Criar checkpoint final
